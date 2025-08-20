@@ -15,9 +15,9 @@ def check_prerequisites():
     for tool in required_tools:
         try:
             subprocess.run([tool, '--version'], check=True, capture_output=True)
-            print(f"✓ {tool} is installed")
+            print(f"[OK] {tool} is installed")
         except (subprocess.CalledProcessError, FileNotFoundError):
-            print(f"✗ {tool} is not installed or not in PATH")
+            print(f"[ERROR] {tool} is not installed or not in PATH")
             return False
     
     return True
@@ -48,10 +48,10 @@ def bootstrap_cdk(account: str, region: str):
             'cdk', 'bootstrap', 
             f'aws://{account}/{region}'
         ], check=True)
-        print("✓ CDK bootstrap completed")
+        print("[OK] CDK bootstrap completed")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"✗ CDK bootstrap failed: {e}")
+        print(f"[ERROR] CDK bootstrap failed: {e}")
         return False
 
 def install_dependencies():
@@ -62,10 +62,10 @@ def install_dependencies():
         subprocess.run([
             sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'
         ], check=True)
-        print("✓ Dependencies installed")
+        print("[OK] Dependencies installed")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"✗ Failed to install dependencies: {e}")
+        print(f"[ERROR] Failed to install dependencies: {e}")
         return False
 
 def deploy_stacks(environment: str, account: str, region: str):
@@ -85,142 +85,24 @@ def deploy_stacks(environment: str, account: str, region: str):
             'cdk', 'deploy', '--all', '--require-approval', 'never'
         ] + context_args, check=True)
         
-        print("✓ All stacks deployed successfully")
+        print("[OK] All stacks deployed successfully")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"✗ Deployment failed: {e}")
+        print(f"[ERROR] Deployment failed: {e}")
         return False
 
 def create_integration_guide():
     """Create integration guide for existing projects"""
-    guide_content = """
-# AWS Observability Platform Integration Guide
-
-## Quick Start
-
-1. **Add monitoring to existing Lambda functions:**
-   ```python
-   import boto3
-   
-   # Send custom metrics
-   cloudwatch = boto3.client('cloudwatch')
-   cloudwatch.put_metric_data(
-       Namespace='MyApp/Lambda',
-       MetricData=[
-           {
-               'MetricName': 'BusinessMetric',
-               'Value': 1,
-               'Dimensions': [
-                   {'Name': 'FunctionName', 'Value': 'my-function'}
-               ]
-           }
-       ]
-   )
-   ```
-
-2. **Add structured logging:**
-   ```python
-   import json
-   import logging
-   
-   logger = logging.getLogger()
-   logger.setLevel(logging.INFO)
-   
-   def lambda_handler(event, context):
-       logger.info(json.dumps({
-           'event_type': 'request_received',
-           'request_id': context.aws_request_id,
-           'user_id': event.get('user_id'),
-           'timestamp': datetime.utcnow().isoformat()
-       }))
-   ```
-
-3. **Enable X-Ray tracing:**
-   ```python
-   from aws_xray_sdk.core import xray_recorder
-   from aws_xray_sdk.core import patch_all
-   
-   # Patch AWS SDK calls
-   patch_all()
-   
-   @xray_recorder.capture('my_function')
-   def my_function():
-       # Your code here
-       pass
-   ```
-
-## Environment Variables
-
-Set these environment variables in your applications:
-
-- `OBSERVABILITY_EVENT_BUS`: Custom EventBridge bus name
-- `OBSERVABILITY_ENVIRONMENT`: Environment name (dev/staging/prod)
-
-## Custom Alerts
-
-Send custom alerts to the platform:
-
-```python
-import boto3
-
-events = boto3.client('events')
-events.put_events(
-    Entries=[
-        {
-            'Source': 'myapp.alerts',
-            'DetailType': 'Custom Alert',
-            'Detail': json.dumps({
-                'severity': 'high',
-                'message': 'Custom business logic alert',
-                'source': 'my-application'
-            }),
-            'EventBusName': 'observability-{environment}'
-        }
-    ]
-)
-```
-
-## Dashboard Integration
-
-Access your dashboards:
-- Overview: https://console.aws.amazon.com/cloudwatch/home#dashboards:name=Observability-Overview-{env}
-- Service-specific: https://console.aws.amazon.com/cloudwatch/home#dashboards:name=Observability-{SERVICE}-{env}
-- Cost: https://console.aws.amazon.com/cloudwatch/home#dashboards:name=Observability-Cost-{env}
-
-## Runbooks
-
-Common troubleshooting scenarios:
-
-### High Lambda Error Rate
-1. Check CloudWatch Logs for error details
-2. Review X-Ray traces for performance issues
-3. Check recent deployments
-4. Verify environment variables and permissions
-
-### High EC2 CPU Usage
-1. Check CloudWatch metrics for the specific instance
-2. Review application logs
-3. Consider auto-scaling if appropriate
-4. Check for resource-intensive processes
-
-### Cost Anomalies
-1. Review Cost Explorer for detailed breakdown
-2. Check for new resources or increased usage
-3. Review optimization recommendations
-4. Consider rightsizing resources
-
-## Support
-
-For issues or questions:
-1. Check CloudWatch Logs: `/observability/platform`
-2. Review EventBridge events for automation status
-3. Check SNS topics for alert delivery
-"""
+    import shutil
+    import os
     
-    with open('INTEGRATION_GUIDE.md', 'w') as f:
-        f.write(guide_content)
-    
-    print("✓ Integration guide created: INTEGRATION_GUIDE.md")
+    # Copy pre-existing integration guide template
+    template_path = 'docs/INTEGRATION_GUIDE_TEMPLATE.md'
+    if os.path.exists(template_path):
+        shutil.copy(template_path, 'INTEGRATION_GUIDE.md')
+        print("[OK] Integration guide created: INTEGRATION_GUIDE.md")
+    else:
+        print("[WARNING] Integration guide template not found, skipping creation")
 
 def main():
     """Main deployment function"""

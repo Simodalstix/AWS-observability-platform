@@ -22,9 +22,9 @@ class AutomationStack(Stack):
         self.automation_resources = {}
         
         # Create automation components
+        self._create_automation_role()
         self._create_remediation_functions()
         self._create_remediation_workflows()
-        self._create_auto_scaling_automation()
         self._create_incident_response()
     
     def _create_remediation_functions(self):

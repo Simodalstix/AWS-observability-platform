@@ -224,7 +224,7 @@ For issues or questions:
 
 def main():
     """Main deployment function"""
-    print("🚀 AWS Observability Platform Deployment")
+    print("AWS Observability Platform Deployment")
     print("=" * 50)
     
     # Check prerequisites
@@ -259,7 +259,7 @@ def main():
     # Create integration guide
     create_integration_guide()
     
-    print("\n🎉 Deployment completed successfully!")
+    print("\nDeployment completed successfully!")
     print("\nNext steps:")
     print("1. Review the INTEGRATION_GUIDE.md file")
     print("2. Configure email addresses for alerts in SNS topics")

@@ -2,7 +2,7 @@
 
 A comprehensive, enterprise-ready monitoring and observability platform built with AWS CDK that provides instant visibility into any AWS workload with minimal configuration.
 
-## 🎯 Features
+## Features
 
 ### Core Monitoring
 - **Universal Resource Discovery**: Automatically detects and monitors EC2, ECS, EKS, Lambda, RDS, and more
@@ -34,7 +34,7 @@ A comprehensive, enterprise-ready monitoring and observability platform built wi
 - **Scheduled Insights**: Pre-configured CloudWatch Logs Insights queries
 - **Real-time Analysis**: Kinesis-based log streaming and processing
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -71,7 +71,7 @@ A comprehensive, enterprise-ready monitoring and observability platform built wi
                     └──────────────────────────┘
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - AWS CLI configured with appropriate permissions
@@ -111,7 +111,7 @@ cdk bootstrap
 cdk deploy --all --context environment=dev
 ```
 
-## 📊 Stack Components
+## Stack Components
 
 ### Core Stack (`CoreObservabilityStack`)
 - KMS encryption for all observability data
@@ -151,7 +151,7 @@ cdk deploy --all --context environment=dev
 - **Scheduled Queries**: Automated CloudWatch Logs Insights
 - **Anomaly Detection**: Pattern recognition for unusual behavior
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment-specific Settings
 
@@ -197,7 +197,7 @@ cloudwatch.put_metric_data(
 )
 ```
 
-## 📈 Monitoring Integration
+## Monitoring Integration
 
 ### For Existing Applications
 
@@ -246,7 +246,7 @@ cloudwatch.put_metric_data(
    )
    ```
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -279,7 +279,7 @@ aws logs tail /observability/platform --follow
 aws events put-events --entries file://test-event.json
 ```
 
-## 🔒 Security
+## Security
 
 - All data encrypted at rest using KMS
 - Least-privilege IAM roles and policies
@@ -287,7 +287,7 @@ aws events put-events --entries file://test-event.json
 - CloudTrail integration for audit logging
 - Secrets Manager for sensitive configuration
 
-## 💰 Cost Optimization
+## Cost Optimization
 
 The platform includes built-in cost optimization:
 
@@ -301,7 +301,7 @@ Estimated monthly costs:
 - **Dev Environment**: $20-50
 - **Production Environment**: $100-300 (depending on scale)
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -309,17 +309,17 @@ Estimated monthly costs:
 4. Add tests for new functionality
 5. Submit a pull request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🆘 Support
+## Support
 
 - **Documentation**: Check the `docs/` directory for detailed guides
 - **Issues**: Report bugs and feature requests via GitHub Issues
 - **Discussions**: Join the community discussions for questions and ideas
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [ ] Grafana integration for advanced visualization
 - [ ] Prometheus metrics export

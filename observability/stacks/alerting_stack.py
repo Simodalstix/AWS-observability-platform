@@ -1,0 +1,308 @@
+from aws_cdk import (
+    Stack,
+    aws_cloudwatch as cloudwatch,
+    aws_cloudwatch_actions as cw_actions,
+    aws_sns as sns,
+    aws_sns_subscriptions as subscriptions,
+    aws_lambda as lambda_,
+    aws_events as events,
+    aws_events_targets as targets,
+    aws_ssm as ssm,
+    Duration
+)
+from constructs import Construct
+from typing import Dict, Any
+from ..config.monitoring_config import MonitoringConfig
+
+class AlertingStack(Stack):
+    def __init__(self, scope: Construct, construct_id: str, environment: str, core_resources: Dict[str, Any], **kwargs) -> None:
+        super().__init__(scope, construct_id, **kwargs)
+        
+        self.environment = environment
+        self.core_resources = core_resources
+        self.alerting_resources = {}
+        
+        # Create alerting infrastructure
+        self._create_notification_topics()
+        self._create_alert_processor()
+        self._create_default_alarms()
+        self._create_composite_alarms()
+    
+    def _create_notification_topics(self):
+        """Create SNS topics for different alert severities"""
+        severities = ["critical", "high", "medium", "low"]
+        self.alerting_resources["topics"] = {}
+        
+        for severity in severities:
+            topic = sns.Topic(
+                self, f"AlertTopic{severity.title()}",
+                topic_name=f"observability-alerts-{severity}-{self.environment}",
+                display_name=f"Observability {severity.title()} Alerts",
+                kms_master_key=self.core_resources["kms_key"]
+            )
+            
+            # Add email subscription (will be confirmed manually)
+            # In production, you'd get this from SSM Parameter or context
+            email = self.node.try_get_context("alert_email")
+            if email:
+                subscriptions.EmailSubscription(email)
+            
+            self.alerting_resources["topics"][severity] = topic
+        
+        # Store topic ARNs in SSM for external access
+        for severity, topic in self.alerting_resources["topics"].items():
+            ssm.StringParameter(
+                self, f"AlertTopicArn{severity.title()}",
+                parameter_name=f"/observability/{self.environment}/alerts/topics/{severity}",
+                string_value=topic.topic_arn
+            )
+    
+    def _create_alert_processor(self):
+        """Create Lambda function to process and enrich alerts"""
+        self.alerting_resources["processor"] = lambda_.Function(
+            self, "AlertProcessor",
+            runtime=lambda_.Runtime.PYTHON_3_11,
+            handler="handler.handler",
+            code=lambda_.Code.from_asset("src/lambda/alert_processor"),
+import json
+import boto3
+import os
+import logging
+from datetime import datetime, timezone
+from typing import Dict, Any
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+sns = boto3.client('sns')
+cloudwatch = boto3.client('cloudwatch')
+events = boto3.client('events')
+
+def handler(event, context):
+    try:
+        # Process CloudWatch alarm state changes
+        if 'source' in event and event['source'] == 'aws.cloudwatch':
+            process_cloudwatch_alarm(event)
+        
+        # Process custom metric alerts
+        elif 'detail-type' in event and 'Custom Metric Alert' in event['detail-type']:
+            process_custom_alert(event)
+        
+        return {'statusCode': 200}
+    except Exception as e:
+        logger.error(f"Error processing alert: {str(e)}")
+        return {'statusCode': 500}
+
+def process_cloudwatch_alarm(event):
+    detail = event['detail']
+    alarm_name = detail['alarmName']
+    state = detail['state']['value']
+    reason = detail['state']['reason']
+    
+    # Determine severity based on alarm name or metric
+    severity = determine_severity(alarm_name, detail)
+    
+    # Enrich alert with additional context
+    enriched_alert = {
+        'timestamp': datetime.now(timezone.utc).isoformat(),
+        'alarm_name': alarm_name,
+        'state': state,
+        'reason': reason,
+        'severity': severity,
+        'environment': os.environ.get('ENVIRONMENT', 'unknown'),
+        'runbook_url': generate_runbook_url(alarm_name),
+        'dashboard_url': generate_dashboard_url(alarm_name)
+    }
+    
+    # Send to appropriate SNS topic
+    topic_arn = os.environ.get(f'TOPIC_ARN_{severity.upper()}')
+    if topic_arn and state in ['ALARM', 'INSUFFICIENT_DATA']:
+        send_notification(topic_arn, enriched_alert)
+    
+    # Send to EventBridge for automation
+    send_to_eventbridge(enriched_alert)
+
+def process_custom_alert(event):
+    # Process custom application alerts
+    detail = event['detail']
+    severity = detail.get('severity', 'medium')
+    
+    enriched_alert = {
+        'timestamp': datetime.now(timezone.utc).isoformat(),
+        'alert_type': 'custom',
+        'severity': severity,
+        'message': detail.get('message', ''),
+        'source': detail.get('source', 'unknown'),
+        'environment': os.environ.get('ENVIRONMENT', 'unknown')
+    }
+    
+    topic_arn = os.environ.get(f'TOPIC_ARN_{severity.upper()}')
+    if topic_arn:
+        send_notification(topic_arn, enriched_alert)
+
+def determine_severity(alarm_name: str, detail: Dict[str, Any]) -> str:
+    # Logic to determine severity based on alarm characteristics
+    if 'critical' in alarm_name.lower() or 'error' in alarm_name.lower():
+        return 'critical'
+    elif 'high' in alarm_name.lower() or 'cpu' in alarm_name.lower():
+        return 'high'
+    elif 'medium' in alarm_name.lower() or 'warning' in alarm_name.lower():
+        return 'medium'
+    else:
+        return 'low'
+
+def generate_runbook_url(alarm_name: str) -> str:
+    # Generate URL to runbook based on alarm name
+    base_url = os.environ.get('RUNBOOK_BASE_URL', 'https://runbooks.example.com')
+    return f"{base_url}/{alarm_name.lower().replace(' ', '-')}"
+
+def generate_dashboard_url(alarm_name: str) -> str:
+    # Generate CloudWatch dashboard URL
+    region = os.environ.get('AWS_REGION', 'us-east-1')
+    return f"https://console.aws.amazon.com/cloudwatch/home?region={region}#dashboards:"
+
+def send_notification(topic_arn: str, alert: Dict[str, Any]):
+    message = format_alert_message(alert)
+    sns.publish(
+        TopicArn=topic_arn,
+        Message=json.dumps(alert, indent=2),
+        Subject=f"[{alert['severity'].upper()}] {alert.get('alarm_name', 'Alert')}",
+        MessageAttributes={
+            'severity': {'DataType': 'String', 'StringValue': alert['severity']},
+            'environment': {'DataType': 'String', 'StringValue': alert['environment']}
+        }
+    )
+
+def send_to_eventbridge(alert: Dict[str, Any]):
+    events.put_events(
+        Entries=[
+            {
+                'Source': 'observability.alerts',
+                'DetailType': 'Alert Processed',
+                'Detail': json.dumps(alert),
+                'EventBusName': os.environ.get('EVENT_BUS_NAME')
+            }
+        ]
+    )
+
+def format_alert_message(alert: Dict[str, Any]) -> str:
+    return f"""
+Alert: {alert.get('alarm_name', 'Unknown')}
+Severity: {alert['severity'].upper()}
+State: {alert.get('state', 'Unknown')}
+Time: {alert['timestamp']}
+Environment: {alert['environment']}
+
+Reason: {alert.get('reason', 'No reason provided')}
+
+Runbook: {alert.get('runbook_url', 'N/A')}
+Dashboard: {alert.get('dashboard_url', 'N/A')}
+"""
+            role=self.core_resources["lambda_role"],
+            timeout=Duration.minutes(2),
+            log_group=self.core_resources["log_groups"]["alert_processor_logs"],
+            tracing=lambda_.Tracing.ACTIVE,
+            environment={
+                "ENVIRONMENT": self.environment,
+                "EVENT_BUS_NAME": self.core_resources["event_bus"].event_bus_name,
+                **{f"TOPIC_ARN_{sev.upper()}": topic.topic_arn 
+                   for sev, topic in self.alerting_resources["topics"].items()}
+            }
+        )
+        
+        # Subscribe processor to CloudWatch alarm state changes
+        events.Rule(
+            self, "CloudWatchAlarmRule",
+            event_pattern=events.EventPattern(
+                source=["aws.cloudwatch"],
+                detail_type=["CloudWatch Alarm State Change"]
+            ),
+            targets=[targets.LambdaFunction(self.alerting_resources["processor"])]
+        )
+        
+        # Subscribe to custom EventBridge events
+        events.Rule(
+            self, "CustomAlertRule",
+            event_bus=self.core_resources["event_bus"],
+            event_pattern=events.EventPattern(
+                source=["observability.custom"],
+                detail_type=["Custom Metric Alert"]
+            ),
+            targets=[targets.LambdaFunction(self.alerting_resources["processor"])]
+        )
+    
+    def _create_default_alarms(self):
+        """Create default alarms for common scenarios"""
+        self.alerting_resources["alarms"] = {}
+        
+        # High Lambda error rate alarm
+        lambda_error_alarm = cloudwatch.Alarm(
+            self, "LambdaHighErrorRate",
+            alarm_name=f"observability-lambda-high-errors-{self.environment}",
+            alarm_description="Lambda functions experiencing high error rates",
+            metric=cloudwatch.Metric(
+                namespace="AWS/Lambda",
+                metric_name="Errors",
+                statistic="Sum",
+                period=Duration.minutes(5)
+            ),
+            threshold=10,
+            evaluation_periods=2,
+            datapoints_to_alarm=2,
+            comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+            treat_missing_data=cloudwatch.TreatMissingData.NOT_BREACHING
+        )
+        
+        lambda_error_alarm.add_alarm_action(
+            cw_actions.SnsAction(self.alerting_resources["topics"]["high"])
+        )
+        
+        # High EC2 CPU utilization
+        ec2_cpu_alarm = cloudwatch.Alarm(
+            self, "EC2HighCPU",
+            alarm_name=f"observability-ec2-high-cpu-{self.environment}",
+            alarm_description="EC2 instances with high CPU utilization",
+            metric=cloudwatch.Metric(
+                namespace="AWS/EC2",
+                metric_name="CPUUtilization",
+                statistic="Average",
+                period=Duration.minutes(5)
+            ),
+            threshold=80,
+            evaluation_periods=3,
+            datapoints_to_alarm=2,
+            comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD
+        )
+        
+        ec2_cpu_alarm.add_alarm_action(
+            cw_actions.SnsAction(self.alerting_resources["topics"]["medium"])
+        )
+        
+        self.alerting_resources["alarms"]["lambda_errors"] = lambda_error_alarm
+        self.alerting_resources["alarms"]["ec2_cpu"] = ec2_cpu_alarm
+    
+    def _create_composite_alarms(self):
+        """Create composite alarms for system-wide health"""
+        # System health composite alarm
+        system_health_alarm = cloudwatch.CompositeAlarm(
+            self, "SystemHealthAlarm",
+            alarm_name=f"observability-system-health-{self.environment}",
+            alarm_description="Overall system health indicator",
+            composite_alarm_rule=cloudwatch.AlarmRule.any_of(
+                cloudwatch.AlarmRule.from_alarm(
+                    self.alerting_resources["alarms"]["lambda_errors"],
+                    cloudwatch.AlarmState.ALARM
+                ),
+                cloudwatch.AlarmRule.from_alarm(
+                    self.alerting_resources["alarms"]["ec2_cpu"],
+                    cloudwatch.AlarmState.ALARM
+                )
+            ),
+            actions_enabled=True
+        )
+        
+        system_health_alarm.add_alarm_action(
+            cw_actions.SnsAction(self.alerting_resources["topics"]["critical"])
+        )
+        
+        self.alerting_resources["alarms"]["system_health"] = system_health_alarm

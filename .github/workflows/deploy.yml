@@ -1,0 +1,64 @@
+name: Deploy
+
+on:
+  # push:
+  #   branches: [ main ]
+  #   tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+        - staging
+        - prod
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'dev' }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Install CDK
+      run: npm install -g aws-cdk
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+    
+    - name: CDK Bootstrap
+      run: cdk bootstrap
+    
+    - name: CDK Diff
+      run: cdk diff --all --context environment=${{ github.event.inputs.environment || 'dev' }}
+    
+    - name: CDK Deploy
+      run: cdk deploy --all --require-approval never --context environment=${{ github.event.inputs.environment || 'dev' }}
+    
+    - name: Post-deployment validation
+      run: |
+        echo "Deployment completed for environment: ${{ github.event.inputs.environment || 'dev' }}"
+        # Add validation commands here

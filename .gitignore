@@ -54,3 +54,14 @@ logs/
 
 # Generated files
 INTEGRATION_GUIDE.md
+
+# Test coverage
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+.pytest_cache/
+
+# Security scan results
+bandit-report.json
+trivy-results.sarif

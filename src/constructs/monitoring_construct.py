@@ -38,7 +38,7 @@ class MonitoringConstruct(Construct):
     
     def _create_dashboard(self, metrics_config: List[Dict[str, Any]]) -> cloudwatch.Dashboard:
         """Create service-specific dashboard"""
-        widgets = []
+        widgets: List[List[cloudwatch.IWidget]] = []
         
         # Create widgets based on metrics configuration
         for i, metric_config in enumerate(metrics_config):
@@ -118,6 +118,7 @@ class MonitoringConstruct(Construct):
                 statistic="Average"
             ),
             threshold=threshold,
+            evaluation_periods=2,
             comparison_operator=getattr(cloudwatch.ComparisonOperator, comparison_operator)
         )
         

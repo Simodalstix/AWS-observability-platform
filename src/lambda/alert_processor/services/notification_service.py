@@ -85,10 +85,10 @@ class NotificationService:
     def _get_topic_arns(self) -> Dict[str, str]:
         """Get SNS topic ARNs from environment variables"""
         return {
-            'critical': os.environ.get('TOPIC_ARN_CRITICAL'),
-            'high': os.environ.get('TOPIC_ARN_HIGH'),
-            'medium': os.environ.get('TOPIC_ARN_MEDIUM'),
-            'low': os.environ.get('TOPIC_ARN_LOW')
+            'critical': os.environ.get('TOPIC_ARN_CRITICAL') or '',
+            'high': os.environ.get('TOPIC_ARN_HIGH') or '',
+            'medium': os.environ.get('TOPIC_ARN_MEDIUM') or '',
+            'low': os.environ.get('TOPIC_ARN_LOW') or ''
         }
     
     def _format_alert_message(self, alert: Dict[str, Any]) -> str:

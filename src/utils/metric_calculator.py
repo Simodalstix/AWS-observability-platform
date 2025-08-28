@@ -130,7 +130,7 @@ class MetricCalculator:
             return False
         
         # Group values by hour of day (for daily seasonality)
-        hourly_groups = {}
+        hourly_groups: Dict[int, List[float]] = {}
         for value, timestamp in zip(values, timestamps):
             hour = timestamp.hour
             if hour not in hourly_groups:

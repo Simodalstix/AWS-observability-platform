@@ -1,6 +1,6 @@
 # AWS Observability Platform
 
-[![Build Status](https://github.com/username/AWS-observability-platform/workflows/CI/badge.svg)](https://github.com/username/AWS-observability-platform/actions)
+[![CI](https://github.com/username/AWS-observability-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/username/AWS-observability-platform/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/username/AWS-observability-platform/branch/main/graph/badge.svg)](https://codecov.io/gh/username/AWS-observability-platform)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Release](https://img.shields.io/github/v/release/username/AWS-observability-platform)](https://github.com/username/AWS-observability-platform/releases)

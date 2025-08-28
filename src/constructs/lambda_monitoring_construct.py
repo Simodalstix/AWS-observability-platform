@@ -4,6 +4,7 @@ Lambda-specific monitoring construct
 from aws_cdk import (
     aws_lambda as lambda_,
     aws_cloudwatch as cloudwatch,
+    aws_cloudwatch_actions as cloudwatch_actions,
     aws_logs as logs,
     Duration
 )

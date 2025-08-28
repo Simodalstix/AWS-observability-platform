@@ -157,7 +157,7 @@ class ConfigManager:
         if config.logging.retention_days <= 0:
             return False
         
-        if config.logging.log_level not in ['DEBUG', 'INFO', 'WARN', 'ERROR']:
+        if config.logging.log_level not in ['DEBUG', 'INFO', 'WARN', 'WARNING', 'ERROR']:
             return False
         
         # Validate cost settings

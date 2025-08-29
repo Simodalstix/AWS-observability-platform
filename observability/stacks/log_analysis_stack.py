@@ -30,7 +30,6 @@ class LogAnalysisStack(Stack):
         """Create Kinesis stream for log processing"""
         self.log_resources["stream"] = kinesis.Stream(
             self, "LogStream",
-            stream_name=f"observability-logs-{self.env_name}",
             shard_count=2 if self.env_name == "prod" else 1,
             encryption=kinesis.StreamEncryption.KMS,
             encryption_key=self.core_resources["kms_key"]
@@ -39,7 +38,6 @@ class LogAnalysisStack(Stack):
         # Kinesis Firehose for S3 delivery
         self.log_resources["firehose"] = firehose.CfnDeliveryStream(
             self, "LogFirehose",
-            delivery_stream_name=f"observability-logs-firehose-{self.env_name}",
             kinesis_stream_source_configuration=firehose.CfnDeliveryStream.KinesisStreamSourceConfigurationProperty(
                 kinesis_stream_arn=self.log_resources["stream"].stream_arn,
                 role_arn=self.core_resources["lambda_role"].role_arn

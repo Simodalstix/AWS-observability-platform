@@ -46,7 +46,6 @@ class CoreObservabilityStack(Stack):
         """Create S3 bucket for storing observability data"""
         self.core_resources["storage_bucket"] = s3.Bucket(
             self, "ObservabilityBucket",
-            bucket_name=f"observability-data-{self.account}-{self.region}-{self.env_name}",
             encryption=s3.BucketEncryption.KMS,
             encryption_key=self.core_resources["kms_key"],
             versioned=True,
@@ -157,15 +156,13 @@ class CoreObservabilityStack(Stack):
     def _create_event_bus(self):
         """Create custom EventBridge bus for observability events"""
         self.core_resources["event_bus"] = events.EventBus(
-            self, "ObservabilityEventBus",
-            event_bus_name=f"observability-{self.env_name}"
+            self, "ObservabilityEventBus"
         )
         
         # Archive events for replay capability
         events.Archive(
             self, "ObservabilityEventArchive",
             source_event_bus=self.core_resources["event_bus"],
-            archive_name=f"observability-archive-{self.env_name}",
             description="Archive of observability events for replay",
             event_pattern=events.EventPattern(
                 source=["observability.platform"]

@@ -16,7 +16,7 @@ class CoreObservabilityStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, environment: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         
-        self.environment = environment
+        self.env_name = environment
         self.core_resources = {}
         
         # Create core resources
@@ -31,14 +31,14 @@ class CoreObservabilityStack(Stack):
         """Create KMS key for encrypting observability data"""
         self.core_resources["kms_key"] = kms.Key(
             self, "ObservabilityKey",
-            description=f"Observability platform encryption key - {self.environment}",
+            description=f"Observability platform encryption key - {self.env_name}",
             enable_key_rotation=True,
-            removal_policy=RemovalPolicy.DESTROY if self.environment == "dev" else RemovalPolicy.RETAIN
+            removal_policy=RemovalPolicy.DESTROY if self.env_name == "dev" else RemovalPolicy.RETAIN
         )
         
         kms.Alias(
             self, "ObservabilityKeyAlias",
-            alias_name=f"alias/observability-{self.environment}",
+            alias_name=f"alias/observability-{self.env_name}",
             target_key=self.core_resources["kms_key"]
         )
     
@@ -46,7 +46,7 @@ class CoreObservabilityStack(Stack):
         """Create S3 bucket for storing observability data"""
         self.core_resources["storage_bucket"] = s3.Bucket(
             self, "ObservabilityBucket",
-            bucket_name=f"observability-data-{self.account}-{self.region}-{self.environment}",
+            bucket_name=f"observability-data-{self.account}-{self.region}-{self.env_name}",
             encryption=s3.BucketEncryption.KMS,
             encryption_key=self.core_resources["kms_key"],
             versioned=True,
@@ -67,7 +67,7 @@ class CoreObservabilityStack(Stack):
                     expiration=Duration.days(365)
                 )
             ],
-            removal_policy=RemovalPolicy.DESTROY if self.environment == "dev" else RemovalPolicy.RETAIN
+            removal_policy=RemovalPolicy.DESTROY if self.env_name == "dev" else RemovalPolicy.RETAIN
         )
     
     def _create_log_groups(self):
@@ -85,7 +85,7 @@ class CoreObservabilityStack(Stack):
             self.core_resources["log_groups"][name] = logs.LogGroup(
                 self, f"LogGroup{name.title().replace('_', '')}",
                 log_group_name=log_group_name,
-                retention=logs.RetentionDays.ONE_MONTH if self.environment == "dev" else logs.RetentionDays.SIX_MONTHS,
+                retention=logs.RetentionDays.ONE_MONTH if self.env_name == "dev" else logs.RetentionDays.SIX_MONTHS,
                 encryption_key=self.core_resources["kms_key"],
                 removal_policy=RemovalPolicy.DESTROY
             )
@@ -158,14 +158,14 @@ class CoreObservabilityStack(Stack):
         """Create custom EventBridge bus for observability events"""
         self.core_resources["event_bus"] = events.EventBus(
             self, "ObservabilityEventBus",
-            event_bus_name=f"observability-{self.environment}"
+            event_bus_name=f"observability-{self.env_name}"
         )
         
         # Archive events for replay capability
         events.Archive(
             self, "ObservabilityEventArchive",
             source_event_bus=self.core_resources["event_bus"],
-            archive_name=f"observability-archive-{self.environment}",
+            archive_name=f"observability-archive-{self.env_name}",
             description="Archive of observability events for replay",
             event_pattern=events.EventPattern(
                 source=["observability.platform"]
@@ -186,7 +186,7 @@ class CoreObservabilityStack(Stack):
         xray.CfnSamplingRule(
             self, "XRaySamplingRule",
             sampling_rule=xray.CfnSamplingRule.SamplingRuleProperty(
-                rule_name=f"ObservabilitySampling-{self.environment}",
+                rule_name=f"ObservabilitySampling-{self.env_name}",
                 priority=9000,
                 fixed_rate=0.1,  # 10% sampling rate
                 reservoir_size=1,

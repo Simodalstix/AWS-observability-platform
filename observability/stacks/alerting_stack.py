@@ -12,7 +12,7 @@ from aws_cdk import (
 )
 from constructs import Construct
 from typing import Dict, Any
-from ..config.monitoring_config import MonitoringConfig
+# from ..config.monitoring_config import MonitoringConfig
 
 class AlertingStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, environment: str, core_resources: Dict[str, Any], **kwargs) -> None:

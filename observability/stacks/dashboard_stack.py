@@ -76,13 +76,7 @@ class DashboardStack(Stack):
                 [
                     cloudwatch.LogQueryWidget(
                         title="Recent Errors",
-                        log_groups=[lg.log_group_name for lg in self.core_resources["log_groups"].values()],
-                        query_lines=[
-                            "fields @timestamp, @message",
-                            "filter @message like /ERROR/",
-                            "sort @timestamp desc",
-                            "limit 20"
-                        ],
+                        query_string="fields @timestamp, @message | filter @message like /ERROR/ | sort @timestamp desc | limit 20",
                         width=24,
                         height=6
                     )
@@ -127,12 +121,7 @@ class DashboardStack(Stack):
                 widgets.append([
                     cloudwatch.LogQueryWidget(
                         title=f"{service.upper()} Logs",
-                        log_groups=config.log_groups,
-                        query_lines=[
-                            "fields @timestamp, @message",
-                            "sort @timestamp desc",
-                            "limit 50"
-                        ],
+                        query_string="fields @timestamp, @message | sort @timestamp desc | limit 50",
                         width=24,
                         height=8
                     )

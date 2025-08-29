@@ -214,20 +214,18 @@ def send_cost_alert(anomaly: Dict[str, Any]):
     if not topic_arn:
         return
     
-    message = f"""Cost Anomaly Detected!
-
-Date: {anomaly['date']}
-Actual Cost: ${anomaly['cost']:.2f}
-Average Cost: ${anomaly['average']:.2f}
-Threshold: ${anomaly['threshold']:.2f}
-Severity: {anomaly['severity']}
-
-Please review your AWS usage for this date."""
+    message = "Cost Anomaly Detected!\n\n" + \
+              f"Date: {anomaly['date']}\n" + \
+              f"Actual Cost: ${anomaly['cost']:.2f}\n" + \
+              f"Average Cost: ${anomaly['average']:.2f}\n" + \
+              f"Threshold: ${anomaly['threshold']:.2f}\n" + \
+              f"Severity: {anomaly['severity']}\n\n" + \
+              "Please review your AWS usage for this date."
     
     sns.publish(
         TopicArn=topic_arn,
         Message=message,
-        Subject=f"Cost Anomaly Alert - {anomaly['date']}"
+        Subject="Cost Anomaly Alert - " + anomaly['date']
     )
 
 def send_cost_metrics(cost_data: Dict[str, Any]):

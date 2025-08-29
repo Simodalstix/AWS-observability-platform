@@ -152,7 +152,7 @@ class AlertingStack(Stack):
         # System health composite alarm
         system_health_alarm = cloudwatch.CompositeAlarm(
             self, "SystemHealthAlarm",
-            alarm_name=f"observability-system-health-{self.env_name}",
+            composite_alarm_name=f"observability-system-health-{self.env_name}",
             alarm_description="Overall system health indicator",
             composite_alarm_rule=cloudwatch.AlarmRule.any_of(
                 cloudwatch.AlarmRule.from_alarm(

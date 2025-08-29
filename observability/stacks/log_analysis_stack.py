@@ -59,7 +59,7 @@ class LogAnalysisStack(Stack):
         """Create Lambda function for log processing and enrichment"""
         self.log_resources["processor"] = lambda_.Function(
             self, "LogProcessor",
-            runtime=lambda_.Runtime.PYTHON_3_11,
+            runtime=lambda_.Runtime.PYTHON_3_9,
             handler="index.handler",
             code=lambda_.Code.from_inline("""
 import json
@@ -103,7 +103,7 @@ def handler(event, context):
         """Create scheduled CloudWatch Logs Insights queries"""
         insights_runner = lambda_.Function(
             self, "LogInsightsRunner",
-            runtime=lambda_.Runtime.PYTHON_3_11,
+            runtime=lambda_.Runtime.PYTHON_3_9,
             handler="index.handler",
             code=lambda_.Code.from_inline("""
 import boto3
@@ -153,7 +153,7 @@ def handler(event, context):
         """Create log anomaly detection"""
         anomaly_detector = lambda_.Function(
             self, "LogAnomalyDetector",
-            runtime=lambda_.Runtime.PYTHON_3_11,
+            runtime=lambda_.Runtime.PYTHON_3_9,
             handler="index.handler",
             code=lambda_.Code.from_inline("""
 import boto3

@@ -60,7 +60,7 @@ class AlertingStack(Stack):
         """Create Lambda function to process and enrich alerts"""
         self.alerting_resources["processor"] = lambda_.Function(
             self, "AlertProcessor",
-            runtime=lambda_.Runtime.PYTHON_3_11,
+            runtime=lambda_.Runtime.PYTHON_3_9,
             handler="index.handler",
             code=lambda_.Code.from_inline("def handler(event, context): return {'statusCode': 200}"),
             role=self.core_resources["lambda_role"],

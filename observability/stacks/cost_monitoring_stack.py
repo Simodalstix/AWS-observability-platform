@@ -117,7 +117,7 @@ class CostMonitoringStack(Stack):
         
         cost_anomaly_function = lambda_.Function(
             self, "CostAnomalyDetector",
-            runtime=lambda_.Runtime.PYTHON_3_11,
+            runtime=lambda_.Runtime.PYTHON_3_9,
             handler="cost_anomaly.handler",
             code=lambda_.Code.from_inline("""
 import boto3
@@ -289,7 +289,7 @@ def send_cost_metrics(cost_data: Dict[str, Any]):
         
         cost_optimizer = lambda_.Function(
             self, "CostOptimizer",
-            runtime=lambda_.Runtime.PYTHON_3_11,
+            runtime=lambda_.Runtime.PYTHON_3_9,
             handler="cost_optimizer.handler",
             code=lambda_.Code.from_inline("""
 import boto3

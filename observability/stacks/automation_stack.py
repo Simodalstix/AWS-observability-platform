@@ -65,7 +65,7 @@ class AutomationStack(Stack):
         # EC2 instance restart function
         self.automation_resources["ec2_restart"] = lambda_.Function(
             self, "EC2RestartFunction",
-            runtime=lambda_.Runtime.PYTHON_3_11,
+            runtime=lambda_.Runtime.PYTHON_3_9,
             handler="index.handler",
             code=lambda_.Code.from_inline("def handler(event, context): return {'statusCode': 200}"),
             role=self.automation_role,
@@ -77,7 +77,7 @@ class AutomationStack(Stack):
         # Lambda function restart function
         self.automation_resources["lambda_restart"] = lambda_.Function(
             self, "LambdaRestartFunction",
-            runtime=lambda_.Runtime.PYTHON_3_11,
+            runtime=lambda_.Runtime.PYTHON_3_9,
             handler="index.handler",
             code=lambda_.Code.from_inline("def handler(event, context): return {'statusCode': 200}"),
             role=self.automation_role,
@@ -89,7 +89,7 @@ class AutomationStack(Stack):
         # ECS service scaling function
         self.automation_resources["ecs_scale"] = lambda_.Function(
             self, "ECSScaleFunction",
-            runtime=lambda_.Runtime.PYTHON_3_11,
+            runtime=lambda_.Runtime.PYTHON_3_9,
             handler="index.handler",
             code=lambda_.Code.from_inline("def handler(event, context): return {'statusCode': 200}"),
             role=self.automation_role,
@@ -173,7 +173,7 @@ class AutomationStack(Stack):
         # Incident response orchestrator
         incident_responder = lambda_.Function(
             self, "IncidentResponder",
-            runtime=lambda_.Runtime.PYTHON_3_11,
+            runtime=lambda_.Runtime.PYTHON_3_9,
             handler="index.handler",
             code=lambda_.Code.from_inline("def handler(event, context): return {'statusCode': 200}"),
             role=self.automation_role,

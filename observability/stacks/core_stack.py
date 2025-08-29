@@ -175,26 +175,5 @@ class CoreObservabilityStack(Stack):
     
     def _create_xray_resources(self):
         """Create X-Ray tracing resources"""
-        # Enable X-Ray encryption
-        xray.CfnEncryptionConfig(
-            self, "XRayEncryption",
-            type="KMS",
-            key_id=self.core_resources["kms_key"].key_arn
-        )
-        
-        # Create sampling rule for cost optimization
-        xray.CfnSamplingRule(
-            self, "XRaySamplingRule",
-            sampling_rule=xray.CfnSamplingRule.SamplingRuleProperty(
-                rule_name=f"ObservabilitySampling-{self.env_name}",
-                priority=9000,
-                fixed_rate=0.1,  # 10% sampling rate
-                reservoir_size=1,
-                service_name="*",
-                service_type="*",
-                host="*",
-                http_method="*",
-                url_path="*",
-                version=1
-            )
-        )
+        # X-Ray tracing will be enabled at the Lambda function level
+        pass

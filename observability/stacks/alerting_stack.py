@@ -18,7 +18,7 @@ class AlertingStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, environment: str, core_resources: Dict[str, Any], **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         
-        self.environment = environment
+        self.env_name = environment
         self.core_resources = core_resources
         self.alerting_resources = {}
         
@@ -36,7 +36,7 @@ class AlertingStack(Stack):
         for severity in severities:
             topic = sns.Topic(
                 self, f"AlertTopic{severity.title()}",
-                topic_name=f"observability-alerts-{severity}-{self.environment}",
+                topic_name=f"observability-alerts-{severity}-{self.env_name}",
                 display_name=f"Observability {severity.title()} Alerts",
                 kms_master_key=self.core_resources["kms_key"]
             )
@@ -53,7 +53,7 @@ class AlertingStack(Stack):
         for severity, topic in self.alerting_resources["topics"].items():
             ssm.StringParameter(
                 self, f"AlertTopicArn{severity.title()}",
-                parameter_name=f"/observability/{self.environment}/alerts/topics/{severity}",
+                parameter_name=f"/observability/{self.env_name}/alerts/topics/{severity}",
                 string_value=topic.topic_arn
             )
     
@@ -69,7 +69,7 @@ class AlertingStack(Stack):
             log_group=self.core_resources["log_groups"]["alert_processor_logs"],
             tracing=lambda_.Tracing.ACTIVE,
             environment={
-                "ENVIRONMENT": self.environment,
+                "ENVIRONMENT": self.env_name,
                 "EVENT_BUS_NAME": self.core_resources["event_bus"].event_bus_name,
                 **{f"TOPIC_ARN_{sev.upper()}": topic.topic_arn 
                    for sev, topic in self.alerting_resources["topics"].items()}
@@ -104,7 +104,7 @@ class AlertingStack(Stack):
         # High Lambda error rate alarm
         lambda_error_alarm = cloudwatch.Alarm(
             self, "LambdaHighErrorRate",
-            alarm_name=f"observability-lambda-high-errors-{self.environment}",
+            alarm_name=f"observability-lambda-high-errors-{self.env_name}",
             alarm_description="Lambda functions experiencing high error rates",
             metric=cloudwatch.Metric(
                 namespace="AWS/Lambda",
@@ -126,7 +126,7 @@ class AlertingStack(Stack):
         # High EC2 CPU utilization
         ec2_cpu_alarm = cloudwatch.Alarm(
             self, "EC2HighCPU",
-            alarm_name=f"observability-ec2-high-cpu-{self.environment}",
+            alarm_name=f"observability-ec2-high-cpu-{self.env_name}",
             alarm_description="EC2 instances with high CPU utilization",
             metric=cloudwatch.Metric(
                 namespace="AWS/EC2",
@@ -152,7 +152,7 @@ class AlertingStack(Stack):
         # System health composite alarm
         system_health_alarm = cloudwatch.CompositeAlarm(
             self, "SystemHealthAlarm",
-            alarm_name=f"observability-system-health-{self.environment}",
+            alarm_name=f"observability-system-health-{self.env_name}",
             alarm_description="Overall system health indicator",
             composite_alarm_rule=cloudwatch.AlarmRule.any_of(
                 cloudwatch.AlarmRule.from_alarm(

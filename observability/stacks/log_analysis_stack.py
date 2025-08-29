@@ -18,7 +18,7 @@ class LogAnalysisStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, environment: str, core_resources: Dict[str, Any], **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         
-        self.environment = environment
+        self.env_name = environment
         self.core_resources = core_resources
         self.log_resources = {}
         
@@ -34,8 +34,8 @@ class LogAnalysisStack(Stack):
         # Kinesis stream for log data
         self.log_resources["stream"] = kinesis.Stream(
             self, "LogStream",
-            stream_name=f"observability-logs-{self.environment}",
-            shard_count=2 if self.environment == "prod" else 1,
+            stream_name=f"observability-logs-{self.env_name}",
+            shard_count=2 if self.env_name == "prod" else 1,
             encryption=kinesis.StreamEncryption.KMS,
             encryption_key=self.core_resources["kms_key"]
         )
@@ -43,7 +43,7 @@ class LogAnalysisStack(Stack):
         # Kinesis Firehose for S3 delivery
         self.log_resources["firehose"] = firehose.CfnDeliveryStream(
             self, "LogFirehose",
-            delivery_stream_name=f"observability-logs-firehose-{self.environment}",
+            delivery_stream_name=f"observability-logs-firehose-{self.env_name}",
             kinesis_stream_source_configuration=firehose.CfnDeliveryStream.KinesisStreamSourceConfigurationProperty(
                 kinesis_stream_arn=self.log_resources["stream"].stream_arn,
                 role_arn=self.core_resources["lambda_role"].role_arn

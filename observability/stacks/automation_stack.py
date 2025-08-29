@@ -16,7 +16,7 @@ class AutomationStack(Stack):
                  core_resources: Dict[str, Any], alerting_resources: Dict[str, Any], **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         
-        self.environment = environment
+        self.env_name = environment
         self.core_resources = core_resources
         self.alerting_resources = alerting_resources
         self.automation_resources = {}
@@ -162,7 +162,7 @@ class AutomationStack(Stack):
         
         self.automation_resources["remediation_workflow"] = sfn.StateMachine(
             self, "RemediationWorkflow",
-            state_machine_name=f"observability-remediation-{self.environment}",
+            state_machine_name=f"observability-remediation-{self.env_name}",
             definition=definition,
             timeout=Duration.minutes(15)
         )

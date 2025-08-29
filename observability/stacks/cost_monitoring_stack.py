@@ -14,7 +14,7 @@ class CostMonitoringStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, environment: str, core_resources: Dict[str, Any], **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         
-        self.environment = environment
+        self.env_name = environment
         self.core_resources = core_resources
         self.cost_resources = {}
         
@@ -31,16 +31,16 @@ class CostMonitoringStack(Stack):
         monthly_budget = budgets.CfnBudget(
             self, "MonthlyBudget",
             budget=budgets.CfnBudget.BudgetDataProperty(
-                budget_name=f"observability-monthly-budget-{self.environment}",
+                budget_name=f"observability-monthly-budget-{self.env_name}",
                 budget_type="COST",
                 time_unit="MONTHLY",
                 budget_limit=budgets.CfnBudget.SpendProperty(
-                    amount=1000 if self.environment == "prod" else 100,  # $1000 for prod, $100 for dev
+                    amount=1000 if self.env_name == "prod" else 100,  # $1000 for prod, $100 for dev
                     unit="USD"
                 ),
                 cost_filters=budgets.CfnBudget.CostFiltersProperty(
                     tag_key=["Environment"],
-                    tag_value=[self.environment]
+                    tag_value=[self.env_name]
                 )
             ),
             notifications_with_subscribers=[
@@ -81,17 +81,17 @@ class CostMonitoringStack(Stack):
             budgets.CfnBudget(
                 self, f"{service}Budget",
                 budget=budgets.CfnBudget.BudgetDataProperty(
-                    budget_name=f"observability-{service.lower()}-budget-{self.environment}",
+                    budget_name=f"observability-{service.lower()}-budget-{self.env_name}",
                     budget_type="COST",
                     time_unit="MONTHLY",
                     budget_limit=budgets.CfnBudget.SpendProperty(
-                        amount=200 if self.environment == "prod" else 20,
+                        amount=200 if self.env_name == "prod" else 20,
                         unit="USD"
                     ),
                     cost_filters=budgets.CfnBudget.CostFiltersProperty(
                         service=[service],
                         tag_key=["Environment"],
-                        tag_value=[self.environment]
+                        tag_value=[self.env_name]
                     )
                 ),
                 notifications_with_subscribers=[
@@ -472,7 +472,7 @@ def send_optimization_report(recommendations):
         
         self.cost_resources["dashboard"] = cloudwatch.Dashboard(
             self, "CostDashboard",
-            dashboard_name=f"Observability-Cost-{self.environment}",
+            dashboard_name=f"Observability-Cost-{self.env_name}",
             widgets=[
                 [
                     cloudwatch.GraphWidget(

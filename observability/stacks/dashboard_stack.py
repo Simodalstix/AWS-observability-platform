@@ -14,7 +14,7 @@ class DashboardStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, environment: str, core_resources: Dict[str, Any], **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         
-        self.environment = environment
+        self.env_name = environment
         self.core_resources = core_resources
         
         # Create dashboards
@@ -26,7 +26,7 @@ class DashboardStack(Stack):
         """Create main overview dashboard"""
         self.overview_dashboard = cloudwatch.Dashboard(
             self, "OverviewDashboard",
-            dashboard_name=f"Observability-Overview-{self.environment}",
+            dashboard_name=f"Observability-Overview-{self.env_name}",
             widgets=[
                 [
                     cloudwatch.GraphWidget(
@@ -140,7 +140,7 @@ class DashboardStack(Stack):
             
             self.service_dashboards[service] = cloudwatch.Dashboard(
                 self, f"{service.title()}Dashboard",
-                dashboard_name=f"Observability-{service.upper()}-{self.environment}",
+                dashboard_name=f"Observability-{service.upper()}-{self.env_name}",
                 widgets=widgets
             )
     

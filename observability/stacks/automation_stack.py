@@ -70,7 +70,6 @@ class AutomationStack(Stack):
             code=lambda_.Code.from_inline("def handler(event, context): return {'statusCode': 200}"),
             role=self.automation_role,
             timeout=Duration.minutes(2),
-            log_group=self.core_resources["log_groups"]["automation_logs"],
             tracing=lambda_.Tracing.ACTIVE
         )
         
@@ -82,7 +81,6 @@ class AutomationStack(Stack):
             code=lambda_.Code.from_inline("def handler(event, context): return {'statusCode': 200}"),
             role=self.automation_role,
             timeout=Duration.minutes(2),
-            log_group=self.core_resources["log_groups"]["automation_logs"],
             tracing=lambda_.Tracing.ACTIVE
         )
         
@@ -94,7 +92,6 @@ class AutomationStack(Stack):
             code=lambda_.Code.from_inline("def handler(event, context): return {'statusCode': 200}"),
             role=self.automation_role,
             timeout=Duration.minutes(2),
-            log_group=self.core_resources["log_groups"]["automation_logs"],
             tracing=lambda_.Tracing.ACTIVE
         )
     
@@ -178,7 +175,6 @@ class AutomationStack(Stack):
             code=lambda_.Code.from_inline("def handler(event, context): return {'statusCode': 200}"),
             role=self.automation_role,
             timeout=Duration.minutes(2),
-            log_group=self.core_resources["log_groups"]["automation_logs"],
             tracing=lambda_.Tracing.ACTIVE,
             environment={
                 "REMEDIATION_WORKFLOW_ARN": self.automation_resources["remediation_workflow"].state_machine_arn,

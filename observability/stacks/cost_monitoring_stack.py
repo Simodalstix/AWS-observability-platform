@@ -268,7 +268,6 @@ def send_cost_metrics(cost_data: Dict[str, Any]):
 """),
             role=self.core_resources["lambda_role"],
             timeout=Duration.minutes(5),
-            log_group=self.core_resources["log_groups"]["cost_monitor_logs"],
             tracing=lambda_.Tracing.ACTIVE,
             environment={
                 "COST_ALERT_TOPIC_ARN": "arn:aws:sns:us-east-1:123456789012:cost-alerts"  # Replace with actual ARN
@@ -454,7 +453,6 @@ def send_optimization_report(recommendations):
 """),
             role=self.core_resources["lambda_role"],
             timeout=Duration.minutes(10),
-            log_group=self.core_resources["log_groups"]["cost_monitor_logs"],
             tracing=lambda_.Tracing.ACTIVE
         )
         

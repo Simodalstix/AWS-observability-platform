@@ -95,7 +95,6 @@ def handler(event, context):
             role=self.core_resources["lambda_role"],
             timeout=Duration.minutes(5),
             memory_size=512,
-            log_group=self.core_resources["log_groups"]["platform_logs"],
             tracing=lambda_.Tracing.ACTIVE
         )
     
@@ -136,7 +135,6 @@ def handler(event, context):
             """),
             role=self.core_resources["lambda_role"],
             timeout=Duration.minutes(10),
-            log_group=self.core_resources["log_groups"]["platform_logs"],
             tracing=lambda_.Tracing.ACTIVE
         )
         
@@ -183,7 +181,6 @@ def handler(event, context):
             """),
             role=self.core_resources["lambda_role"],
             timeout=Duration.minutes(10),
-            log_group=self.core_resources["log_groups"]["platform_logs"],
             tracing=lambda_.Tracing.ACTIVE,
             environment={
                 "EVENT_BUS_NAME": self.core_resources["event_bus"].event_bus_name

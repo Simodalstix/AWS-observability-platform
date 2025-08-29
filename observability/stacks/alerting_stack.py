@@ -65,7 +65,6 @@ class AlertingStack(Stack):
             code=lambda_.Code.from_inline("def handler(event, context): return {'statusCode': 200}"),
             role=self.core_resources["lambda_role"],
             timeout=Duration.minutes(2),
-            log_group=self.core_resources["log_groups"]["alert_processor_logs"],
             tracing=lambda_.Tracing.ACTIVE,
             environment={
                 "ENVIRONMENT": self.env_name,

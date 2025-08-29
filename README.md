@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/username/AWS-observability-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/username/AWS-observability-platform/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Release](https://img.shields.io/github/v/release/username/AWS-observability-platform)](https://github.com/username/AWS-observability-platform/releases)
+[![Release](https://img.shields.io/github/v/release/simodalstix/AWS-observability-platform)](https://github.com/simodalstix/AWS-observability-platform/releases)
 
 A production-ready AWS monitoring platform built with CDK. Automatically monitors your AWS resources with dashboards, alerts, and cost tracking.
 
@@ -28,6 +28,7 @@ AWS Services → CloudWatch/X-Ray → EventBridge → [Dashboards + Alerts + Aut
 ```
 
 **6 CDK Stacks**:
+
 - Core: KMS, S3, EventBridge, IAM roles
 - Dashboards: CloudWatch dashboards for all services
 - Alerting: Multi-severity SNS topics and alarms
@@ -125,6 +126,7 @@ MIT License - see LICENSE file
 ## Why This Matters
 
 Demonstrates practical AWS skills:
+
 - **CDK Infrastructure as Code**: 6 stacks, 50+ resources, proper abstractions
 - **Production Monitoring**: Real alerting, dashboards, cost tracking
 - **Automation**: Step Functions workflows for incident response

@@ -143,4 +143,31 @@ class ConfigManager:
     @classmethod
     def validate_config(cls, config: EnvironmentConfig) -> bool:
         """Validate configuration values"""
-        return True  # Simplified for now
+        try:
+            # Validate alerting thresholds
+            if not (0 < config.alerting.cpu_threshold <= 100):
+                return False
+            
+            if config.alerting.error_rate_threshold < 0:
+                return False
+            
+            if config.alerting.duration_threshold_ms <= 0:
+                return False
+            
+            # Validate logging settings
+            if config.logging.retention_days <= 0:
+                return False
+            
+            if config.logging.log_level not in ['DEBUG', 'INFO', 'WARN', 'WARNING', 'ERROR']:
+                return False
+            
+            # Validate cost settings
+            if config.cost.monthly_budget_limit <= 0:
+                return False
+            
+            if not (0 < config.cost.anomaly_threshold_percent <= 100):
+                return False
+            
+            return True
+        except (AttributeError, TypeError):
+            return False

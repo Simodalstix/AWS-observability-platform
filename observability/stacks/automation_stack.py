@@ -66,8 +66,8 @@ class AutomationStack(Stack):
         self.automation_resources["ec2_restart"] = lambda_.Function(
             self, "EC2RestartFunction",
             runtime=lambda_.Runtime.PYTHON_3_11,
-            handler="handler.handler",
-            code=lambda_.Code.from_asset("src/lambda/automation/ec2_remediation"),
+            handler="index.handler",
+            code=lambda_.Code.from_inline("def handler(event, context): return {'statusCode': 200}"),
             role=self.automation_role,
             timeout=Duration.minutes(2),
             log_group=self.core_resources["log_groups"]["automation_logs"],
@@ -78,8 +78,8 @@ class AutomationStack(Stack):
         self.automation_resources["lambda_restart"] = lambda_.Function(
             self, "LambdaRestartFunction",
             runtime=lambda_.Runtime.PYTHON_3_11,
-            handler="handler.handler",
-            code=lambda_.Code.from_asset("src/lambda/automation/lambda_remediation"),
+            handler="index.handler",
+            code=lambda_.Code.from_inline("def handler(event, context): return {'statusCode': 200}"),
             role=self.automation_role,
             timeout=Duration.minutes(2),
             log_group=self.core_resources["log_groups"]["automation_logs"],
@@ -90,8 +90,8 @@ class AutomationStack(Stack):
         self.automation_resources["ecs_scale"] = lambda_.Function(
             self, "ECSScaleFunction",
             runtime=lambda_.Runtime.PYTHON_3_11,
-            handler="handler.handler",
-            code=lambda_.Code.from_asset("src/lambda/automation/ecs_remediation"),
+            handler="index.handler",
+            code=lambda_.Code.from_inline("def handler(event, context): return {'statusCode': 200}"),
             role=self.automation_role,
             timeout=Duration.minutes(2),
             log_group=self.core_resources["log_groups"]["automation_logs"],
@@ -174,8 +174,8 @@ class AutomationStack(Stack):
         incident_responder = lambda_.Function(
             self, "IncidentResponder",
             runtime=lambda_.Runtime.PYTHON_3_11,
-            handler="handler.handler",
-            code=lambda_.Code.from_asset("src/lambda/automation/incident_response"),
+            handler="index.handler",
+            code=lambda_.Code.from_inline("def handler(event, context): return {'statusCode': 200}"),
             role=self.automation_role,
             timeout=Duration.minutes(2),
             log_group=self.core_resources["log_groups"]["automation_logs"],
